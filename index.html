@@ -900,6 +900,100 @@
     margin-top: 56px;
     animation: fadeUp 1000ms var(--ease-out) 300ms both;
   }
+
+  /* Project selector (above favorites) */
+  .project-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .project-select { position: relative; }
+  .project-current {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 9px 14px;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    transition: all 200ms var(--ease-out);
+  }
+  .project-current:hover { border-color: var(--accent); }
+  .project-current .project-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--text-faint);
+  }
+  .project-current .project-name {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .project-current .project-caret {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    transition: transform 200ms var(--ease-out);
+  }
+  .project-select.open .project-caret { transform: rotate(180deg); }
+  .project-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 230px;
+    max-height: 320px;
+    overflow-y: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 5px;
+    z-index: 60;
+    animation: popIn 160ms var(--ease-spring);
+  }
+  .project-menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    transition: all 150ms var(--ease-out);
+  }
+  .project-menu-item:hover { background: var(--bg); color: var(--text); }
+  .project-menu-item.active { color: var(--accent); font-weight: 600; }
+  .project-menu-item .pm-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-faint);
+    letter-spacing: 0.08em;
+    flex-shrink: 0;
+  }
+  .project-act {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: var(--radius);
+    padding: 9px 13px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 180ms var(--ease-out);
+  }
+  .project-act:hover { color: var(--text); border-color: var(--text-muted); transform: translateY(-1px); }
+  .project-act.danger:hover { color: var(--crimson); border-color: var(--crimson); }
+
   .fav-header {
     display: flex;
     justify-content: space-between;
@@ -984,6 +1078,46 @@
   }
   .fav-thumb:hover .fav-del { opacity: 1; }
   .fav-thumb .fav-del:hover { color: var(--crimson); border-color: var(--crimson); }
+  .fav-thumb .fav-move {
+    position: absolute;
+    top: 6px; left: 6px;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 180ms var(--ease-out);
+  }
+  .fav-thumb:hover .fav-move { opacity: 1; }
+  .fav-move button {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.72rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 160ms var(--ease-out);
+  }
+  .fav-move button:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); }
+  .fav-move button:disabled { opacity: 0.3; cursor: default; }
+  .fav-thumb .fav-order {
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--text-faint);
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: 3px;
+    padding: 2px 6px;
+    letter-spacing: 0.06em;
+    pointer-events: none;
+  }
   .fav-thumb .fav-tag {
     position: absolute;
     bottom: 6px;
@@ -1359,6 +1493,21 @@
   </main>
 
   <section class="favorites">
+    <div class="project-bar">
+      <div class="project-select" id="projectSelect">
+        <button class="project-current" id="projectCurrentBtn" type="button">
+          <span class="project-label">Proyecto</span>
+          <span class="project-name" id="projectName">Mi coreografía</span>
+          <span class="project-caret">▾</span>
+        </button>
+        <div class="project-menu hidden" id="projectMenu"></div>
+      </div>
+      <div class="project-actions">
+        <button class="project-act" id="projNewBtn" type="button">+ Nuevo</button>
+        <button class="project-act" id="projRenameBtn" type="button">Renombrar</button>
+        <button class="project-act danger" id="projDelBtn" type="button">Eliminar</button>
+      </div>
+    </div>
     <div class="fav-header">
       <span class="fav-title">Fav<span class="ital">oritos</span></span>
       <span class="fav-count" id="favCount">0 guardados</span>
@@ -1433,7 +1582,8 @@ const state = {
   },
   trans: { crossStyle: 'min', pathStyle: 'curve', speed: 50, trail: 70 },
   seq: { count: 3, pause: 600, loop: true },
-  favorites: []
+  projects: [],
+  activeProjectId: null
 };
 
 /* ============================================================
@@ -2258,6 +2408,7 @@ function setupInfoButtons() {
    STORAGE (favorites + settings)
    ============================================================ */
 const STORAGE_FAVS = 'svn_coreografia_favorites_v3';
+const STORAGE_PROJECTS = 'svn_coreografia_projects_v4';
 const STORAGE_SETTINGS = 'svn_coreografia_settings_v3';
 
 function loadSettings() {
@@ -2274,21 +2425,70 @@ function saveSettings() {
   try { localStorage.setItem(STORAGE_SETTINGS, JSON.stringify({ theme: state.theme, accent: state.accent })); } catch {}
 }
 
-function loadFavoritesFromStorage() {
+/* ---- Proyectos: helpers ---- */
+function genProjectId() {
+  return 'proj_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+}
+function getActiveProject() {
+  return state.projects.find(p => p.id === state.activeProjectId) || null;
+}
+function activeFormations() {
+  const p = getActiveProject();
+  return p ? p.formations : [];
+}
+function makeDefaultProject(formations) {
+  return {
+    id: genProjectId(),
+    name: 'Mi coreografía',
+    createdAt: Date.now(),
+    formations: Array.isArray(formations) ? formations : []
+  };
+}
+function saveProjectsToStorage() {
   try {
-    const raw = localStorage.getItem(STORAGE_FAVS);
-    if (raw) {
-      const p = JSON.parse(raw);
-      if (Array.isArray(p)) state.favorites = p;
-    }
+    localStorage.setItem(STORAGE_PROJECTS, JSON.stringify({
+      projects: state.projects,
+      activeProjectId: state.activeProjectId
+    }));
   } catch {}
 }
-function saveFavoritesToStorage() {
-  try { localStorage.setItem(STORAGE_FAVS, JSON.stringify(state.favorites)); } catch {}
+
+/* Carga + migración desde favoritos viejos. NO borra svn_coreografia_favorites_v3. */
+function loadProjectsFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_PROJECTS);
+    if (raw) {
+      const data = JSON.parse(raw);
+      if (data && Array.isArray(data.projects) && data.projects.length) {
+        state.projects = data.projects;
+        state.activeProjectId = data.activeProjectId;
+        if (!getActiveProject()) state.activeProjectId = state.projects[0].id;
+        return;
+      }
+    }
+  } catch {}
+
+  // No hay proyectos guardados: migrar desde los favoritos viejos.
+  let formations = [];
+  try {
+    const rawFav = localStorage.getItem(STORAGE_FAVS);
+    if (rawFav) {
+      const old = JSON.parse(rawFav);
+      // Se guardaban de más nueva a más vieja; invertimos para orden coreográfico.
+      if (Array.isArray(old) && old.length) formations = old.slice().reverse();
+    }
+  } catch {}
+
+  const proj = makeDefaultProject(formations);
+  state.projects = [proj];
+  state.activeProjectId = proj.id;
+  saveProjectsToStorage();
 }
 
 function saveFavorite() {
   if (!state.current) return;
+  const proj = getActiveProject();
+  if (!proj) return;
   const fav = {
     id: Date.now(),
     positions: state.current.map(p => ({ x: p.x, y: p.y, id: p.id, isolated: !!p.isolated })),
@@ -2297,14 +2497,14 @@ function saveFavorite() {
     names: { ...state.names },
     date: new Date().toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
   };
-  state.favorites.unshift(fav);
-  if (state.favorites.length > 36) state.favorites.pop();
-  saveFavoritesToStorage();
+  proj.formations.push(fav);
+  if (proj.formations.length > 36) proj.formations.shift();
+  saveProjectsToStorage();
   renderFavorites();
 }
 
 function loadFavorite(id) {
-  const fav = state.favorites.find(f => f.id === id);
+  const fav = activeFormations().find(f => f.id === id);
   if (!fav) return;
   if (fav.division && DIVISIONS[fav.division]) {
     state.division = fav.division;
@@ -2326,22 +2526,40 @@ function loadFavorite(id) {
 }
 
 function deleteFavorite(id) {
-  state.favorites = state.favorites.filter(f => f.id !== id);
-  saveFavoritesToStorage();
+  const proj = getActiveProject();
+  if (!proj) return;
+  proj.formations = proj.formations.filter(f => f.id !== id);
+  saveProjectsToStorage();
+  renderFavorites();
+}
+
+// Reordenar: dir = -1 (subir, intercambia con anterior) o +1 (bajar, con siguiente)
+function moveFavorite(id, dir) {
+  const proj = getActiveProject();
+  if (!proj) return;
+  const i = proj.formations.findIndex(f => f.id === id);
+  if (i < 0) return;
+  const j = i + dir;
+  if (j < 0 || j >= proj.formations.length) return;
+  const tmp = proj.formations[i];
+  proj.formations[i] = proj.formations[j];
+  proj.formations[j] = tmp;
+  saveProjectsToStorage();
   renderFavorites();
 }
 
 function renderFavorites() {
   const container = document.getElementById('favContainer');
   const counter = document.getElementById('favCount');
-  counter.textContent = state.favorites.length + ' guardado' + (state.favorites.length === 1 ? '' : 's');
-  if (state.favorites.length === 0) {
-    container.innerHTML = '<div class="fav-empty">Todavía no guardaste ninguna formación. Generá una que te guste, retocala con drag y tocá <em>Guardar</em>.</div>';
+  const favs = activeFormations();
+  counter.textContent = favs.length + ' guardado' + (favs.length === 1 ? '' : 's');
+  if (favs.length === 0) {
+    container.innerHTML = '<div class="fav-empty">Todavía no guardaste ninguna formación en este proyecto. Generá una que te guste, retocala con drag y tocá <em>Guardar</em>.</div>';
     return;
   }
   const grid = document.createElement('div');
   grid.className = 'fav-grid';
-  state.favorites.forEach(fav => {
+  favs.forEach((fav, idx) => {
     const thumb = document.createElement('div');
     thumb.className = 'fav-thumb';
     thumb.onclick = () => loadFavorite(fav.id);
@@ -2355,12 +2573,108 @@ function renderFavorites() {
     });
     svg += '</svg>';
     const divName = DIVISIONS[fav.division || 'crew']?.name || 'Crew';
-    thumb.innerHTML = svg + `<span class="fav-tag">${divName} · ${fav.count} · ${fav.date}</span><button class="fav-del" title="Eliminar">×</button>`;
+    const isFirst = idx === 0;
+    const isLast = idx === favs.length - 1;
+    thumb.innerHTML = svg +
+      `<div class="fav-move">
+        <button class="fav-up" title="Subir"${isFirst ? ' disabled' : ''}>↑</button>
+        <button class="fav-down" title="Bajar"${isLast ? ' disabled' : ''}>↓</button>
+      </div>` +
+      `<span class="fav-order">${idx + 1}</span>` +
+      `<span class="fav-tag">${divName} · ${fav.count} · ${fav.date}</span>` +
+      `<button class="fav-del" title="Eliminar">×</button>`;
     thumb.querySelector('.fav-del').onclick = (e) => { e.stopPropagation(); deleteFavorite(fav.id); };
+    thumb.querySelector('.fav-up').onclick = (e) => { e.stopPropagation(); moveFavorite(fav.id, -1); };
+    thumb.querySelector('.fav-down').onclick = (e) => { e.stopPropagation(); moveFavorite(fav.id, 1); };
     grid.appendChild(thumb);
   });
   container.innerHTML = '';
   container.appendChild(grid);
+}
+
+/* ============================================================
+   PROYECTOS — selector y gestión
+   ============================================================ */
+function renderProjectBar() {
+  const proj = getActiveProject();
+  const nameEl = document.getElementById('projectName');
+  if (nameEl) nameEl.textContent = proj ? proj.name : '—';
+
+  const menu = document.getElementById('projectMenu');
+  if (!menu) return;
+  menu.innerHTML = '';
+  state.projects.forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'project-menu-item' + (p.id === state.activeProjectId ? ' active' : '');
+    const n = p.formations.length;
+    item.innerHTML = `<span class="pm-name"></span><span class="pm-count">${n} form.</span>`;
+    item.querySelector('.pm-name').textContent = p.name;
+    item.onclick = () => { switchProject(p.id); closeProjectMenu(); };
+    menu.appendChild(item);
+  });
+}
+
+function openProjectMenu() {
+  renderProjectBar();
+  document.getElementById('projectMenu').classList.remove('hidden');
+  document.getElementById('projectSelect').classList.add('open');
+}
+function closeProjectMenu() {
+  const menu = document.getElementById('projectMenu');
+  if (menu) menu.classList.add('hidden');
+  const sel = document.getElementById('projectSelect');
+  if (sel) sel.classList.remove('open');
+}
+function toggleProjectMenu() {
+  const menu = document.getElementById('projectMenu');
+  if (menu.classList.contains('hidden')) openProjectMenu();
+  else closeProjectMenu();
+}
+
+function switchProject(id) {
+  if (!state.projects.some(p => p.id === id)) return;
+  state.activeProjectId = id;
+  saveProjectsToStorage();
+  renderProjectBar();
+  renderFavorites();
+}
+
+function createProject() {
+  const name = (prompt('Nombre del nuevo proyecto:', '') || '').trim();
+  if (!name) return;
+  const proj = { id: genProjectId(), name, createdAt: Date.now(), formations: [] };
+  state.projects.push(proj);
+  state.activeProjectId = proj.id;
+  saveProjectsToStorage();
+  renderProjectBar();
+  renderFavorites();
+}
+
+function renameProject() {
+  const proj = getActiveProject();
+  if (!proj) return;
+  const name = (prompt('Nuevo nombre del proyecto:', proj.name) || '').trim();
+  if (!name) return;
+  proj.name = name;
+  saveProjectsToStorage();
+  renderProjectBar();
+}
+
+function deleteProject() {
+  const proj = getActiveProject();
+  if (!proj) return;
+  if (!confirm('¿Eliminar el proyecto "' + proj.name + '" y todas sus formaciones? Esta acción no se puede deshacer.')) return;
+  state.projects = state.projects.filter(p => p.id !== proj.id);
+  if (state.projects.length === 0) {
+    const def = makeDefaultProject([]);
+    state.projects = [def];
+    state.activeProjectId = def.id;
+  } else {
+    state.activeProjectId = state.projects[0].id;
+  }
+  saveProjectsToStorage();
+  renderProjectBar();
+  renderFavorites();
 }
 
 /* ============================================================
@@ -2429,8 +2743,17 @@ function init() {
   document.getElementById('favBtn').addEventListener('click', saveFavorite);
   document.getElementById('clearTrailsBtn').addEventListener('click', clearTrails);
 
-  loadFavoritesFromStorage();
+  loadProjectsFromStorage();
+  renderProjectBar();
   renderFavorites();
+
+  document.getElementById('projectCurrentBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleProjectMenu(); });
+  document.getElementById('projNewBtn').addEventListener('click', createProject);
+  document.getElementById('projRenameBtn').addEventListener('click', renameProject);
+  document.getElementById('projDelBtn').addEventListener('click', deleteProject);
+  document.addEventListener('click', (e) => {
+    if (!document.getElementById('projectSelect').contains(e.target)) closeProjectMenu();
+  });
 
   newFormation();
 }
