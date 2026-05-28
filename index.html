@@ -1278,19 +1278,6 @@
     <aside class="controls">
 
       <div class="control-group">
-        <div class="group-title">
-          <span>Modo</span>
-          <button class="info-btn" data-info="mode">i</button>
-        </div>
-        <div class="mode-toggle" id="modeToggle">
-          <button data-mode="static" class="active">Estática</button>
-          <button data-mode="transition">Transición</button>
-          <button data-mode="sequence">Secuencia</button>
-        </div>
-        <div class="info-panel hidden" id="info-mode"><strong>Estática</strong> · una sola formación congelada para mirarla y retocarla. <strong>Transición</strong> · ves cómo los bailarines pasan de una formación A a otra B (con estela y trayectoria). <strong>Secuencia</strong> · varias formaciones encadenadas (3 a 6), como un fragmento de coreografía corrido.</div>
-      </div>
-
-      <div class="control-group">
         <div class="group-title">Formación</div>
 
         <div class="control-row">
@@ -1390,8 +1377,8 @@
         <div class="info-panel hidden" id="info-wings">Dibuja las dos alas traseras de 12 × 8 pies definidas por HHI para MegaCrew. Es la zona oculta al público desde donde los integrantes pueden entrar y salir del escenario.</div>
       </div>
 
-      <div class="control-group" id="transitionControls">
-        <div class="group-title">Transición</div>
+      <div class="control-group" id="playbackControls">
+        <div class="group-title">Reproducción</div>
 
         <div class="control-row">
           <div class="row-header">
@@ -1401,11 +1388,12 @@
             </div>
           </div>
           <div class="pill-group" id="crossStyle">
-            <button data-val="min" class="active">Mínimo</button>
+            <button data-val="identity" class="active">Por bailarín</button>
+            <button data-val="min">Mínimo</button>
             <button data-val="random">Aleatorio</button>
             <button data-val="max">Máximo</button>
           </div>
-          <div class="info-panel hidden" id="info-crossStyle">Cómo se asigna cada bailarín entre la formación A y la B. <strong>Mínimo</strong> = cada uno se mueve lo menos posible. <strong>Aleatorio</strong> = al azar. <strong>Máximo</strong> = cruces grandes (más espectacular).</div>
+          <div class="info-panel hidden" id="info-crossStyle">Cómo se asigna cada bailarín entre la formación A y la B. <strong>Por bailarín</strong> = cada uno va a su propio lugar en la formación siguiente (realista; muestra los cruces reales). <strong>Mínimo</strong> = cada uno se mueve lo menos posible. <strong>Aleatorio</strong> = al azar. <strong>Máximo</strong> = cruces grandes (más espectacular).</div>
         </div>
 
         <div class="control-row">
@@ -1432,7 +1420,7 @@
             <span class="row-value" id="speedVal">50</span>
           </div>
           <input type="range" id="speed" min="10" max="100" value="50">
-          <div class="info-panel hidden" id="info-speed">Qué tan rápido se completa la transición. <strong>10</strong> = lento (~3.7 s). <strong>100</strong> = rápido (~0.8 s, golpe seco al ritmo).</div>
+          <div class="info-panel hidden" id="info-speed">Qué tan rápido se completa cada cambio de formación. <strong>10</strong> = lento (~3.7 s). <strong>100</strong> = rápido (~0.8 s, golpe seco al ritmo).</div>
         </div>
 
         <div class="control-row">
@@ -1445,26 +1433,6 @@
           </div>
           <input type="range" id="trail" min="0" max="100" value="70">
           <div class="info-panel hidden" id="info-trail">Visibilidad del rastro que deja cada bailarín al moverse. Sirve para ver el "dibujo" del camino.</div>
-        </div>
-      </div>
-
-      <div class="control-group hidden" id="sequenceControls">
-        <div class="group-title">Secuencia</div>
-
-        <div class="control-row">
-          <div class="row-header">
-            <div class="row-label-wrap">
-              <span class="row-label">Cantidad</span>
-              <button class="info-btn" data-info="seqCount">i</button>
-            </div>
-          </div>
-          <div class="pill-group" id="seqCount">
-            <button data-val="3" class="active">3</button>
-            <button data-val="4">4</button>
-            <button data-val="5">5</button>
-            <button data-val="6">6</button>
-          </div>
-          <div class="info-panel hidden" id="info-seqCount">Cuántas formaciones encadenadas se generan en la secuencia. Útil para ver un fragmento de coreografía con varios cambios consecutivos.</div>
         </div>
 
         <div class="control-row">
@@ -1486,7 +1454,7 @@
           </div>
           <button class="toggle on" id="loopToggle"></button>
         </div>
-        <div class="info-panel hidden" id="info-loop">Si está activado, al terminar la secuencia vuelve a empezar. Útil para ver la idea repetida y decidir si funciona.</div>
+        <div class="info-panel hidden" id="info-loop">Si está activado, al terminar la coreografía vuelve a empezar desde la primera formación. Útil para verla corrida en repetición.</div>
       </div>
 
     </aside>
@@ -1564,7 +1532,6 @@ const state = {
   accent: 'acid',
   division: 'crew',
   count: 7,
-  mode: 'static',
   current: null,
   target: null,
   sequence: null,
@@ -1580,7 +1547,7 @@ const state = {
     density: 50, asymmetry: 65, isolation: 0, diagonal: 40,
     minDist: 60, voids: true
   },
-  trans: { crossStyle: 'min', pathStyle: 'curve', speed: 50, trail: 70 },
+  trans: { crossStyle: 'identity', pathStyle: 'curve', speed: 50, trail: 70 },
   seq: { count: 3, pause: 600, loop: true },
   projects: [],
   activeProjectId: null
@@ -1852,6 +1819,10 @@ function scoreFormation(positions, params) {
    TRANSITION MATCHING & PATHS
    ============================================================ */
 function matchTransition(A, B, style) {
+  if (style === 'identity') {
+    // Cada bailarín mantiene su identidad: el del lugar i va al lugar i.
+    return B.slice();
+  }
   if (style === 'random') {
     const p = B.slice();
     for (let i = p.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [p[i], p[j]] = [p[j], p[i]]; }
@@ -2261,26 +2232,12 @@ function newFormation() {
     document.getElementById('playBtn').textContent = 'Reproducir';
   }
   clearTrails();
-  if (state.mode === 'static') {
-    state.current = generateFormation(state.count, state.params);
-    state.target = null;
-    renderFormation(state.current, true);
-    document.getElementById('playBtn').disabled = true;
-  } else if (state.mode === 'transition') {
-    state.current = generateFormation(state.count, state.params);
-    state.target = generateFormation(state.count, state.params);
-    renderFormation(state.current, true);
-    document.getElementById('playBtn').disabled = false;
-  } else if (state.mode === 'sequence') {
-    state.sequence = [];
-    for (let i = 0; i < state.seq.count; i++) state.sequence.push(generateFormation(state.count, state.params));
-    state.current = state.sequence[0];
-    state.target = null;
-    renderFormation(state.current, true);
-    document.getElementById('playBtn').disabled = false;
-  }
+  state.current = generateFormation(state.count, state.params);
+  state.target = null;
+  renderFormation(state.current, true);
 }
 
+// Reproduce las formaciones guardadas del proyecto activo, en orden, encadenadas.
 function playPause() {
   if (state.animating) {
     state.animating = false;
@@ -2288,26 +2245,22 @@ function playPause() {
     document.getElementById('playBtn').textContent = 'Reproducir';
     return;
   }
-  if (state.mode === 'transition' && state.current && state.target) {
-    clearTrails();
-    animateTransition(state.current, state.target, () => {
-      const nt = generateFormation(state.count, state.params);
-      state.current = state.target;
-      state.target = nt;
-    });
-  } else if (state.mode === 'sequence' && state.sequence) {
-    clearTrails();
-    state.animating = true;
-    playSequence(state.sequence, 0);
-  }
+  const favs = activeFormations();
+  if (favs.length < 2) return;
+  const formations = favs.map(f => f.positions);
+  clearTrails();
+  // Arrancar mostrando la primera formación.
+  state.current = formations[0].map(p => ({ ...p }));
+  state.target = null;
+  renderFormation(state.current, true);
+  state.animating = true;
+  playSequence(formations, 0);
 }
 
-function setMode(mode) {
-  state.mode = mode;
-  document.querySelectorAll('#modeToggle button').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
-  document.getElementById('transitionControls').classList.toggle('hidden', mode === 'static');
-  document.getElementById('sequenceControls').classList.toggle('hidden', mode !== 'sequence');
-  newFormation();
+// Habilita "Reproducir" solo si el proyecto activo tiene al menos 2 formaciones.
+function updatePlayButton() {
+  const btn = document.getElementById('playBtn');
+  if (btn) btn.disabled = activeFormations().length < 2;
 }
 
 function setDivision(divKey) {
@@ -2553,6 +2506,7 @@ function renderFavorites() {
   const counter = document.getElementById('favCount');
   const favs = activeFormations();
   counter.textContent = favs.length + ' guardado' + (favs.length === 1 ? '' : 's');
+  updatePlayButton();
   if (favs.length === 0) {
     container.innerHTML = '<div class="fav-empty">Todavía no guardaste ninguna formación en este proyecto. Generá una que te guste, retocala con drag y tocá <em>Guardar</em>.</div>';
     return;
@@ -2700,10 +2654,6 @@ function init() {
   const countRange = document.getElementById('countRange');
   countRange.addEventListener('input', () => setCount(parseInt(countRange.value)));
 
-  document.querySelectorAll('#modeToggle button').forEach(b => {
-    b.addEventListener('click', () => setMode(b.dataset.mode));
-  });
-
   bindSlider('density', 'density', 'params');
   bindSlider('asymmetry', 'asymmetry', 'params');
   bindSlider('isolation', 'isolation', 'params');
@@ -2715,7 +2665,6 @@ function init() {
 
   bindPills('crossStyle', 'crossStyle', 'trans');
   bindPills('pathStyle', 'pathStyle', 'trans');
-  bindPills('seqCount', 'count', 'seq');
 
   bindToggle('voidsToggle', 'voids', 'params');
   bindToggle('loopToggle', 'loop', 'seq');
